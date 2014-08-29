@@ -90,10 +90,13 @@ def check_cache(domain, is_ipv4):
 
 def ask_forwarder(query, forwarder):
     conn = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    conn.connect((forwarder, 53))
-    conn.send(query)
-    answer = conn.recv(1024)
-    return answer
+    try:
+        conn.connect((forwarder, 53))
+        conn.send(query)
+        answer = conn.recv(1024)
+        return answer
+    except socket.gaierror:
+        return 0
 
 
 def update_stats(domain, answers, qlength, is_ipv4):
@@ -168,7 +171,11 @@ while True:
     
     if qtype % 27 != 1:
         answer = ask_forwarder(query, forwarder)
-        sock.sendto(answer, addr)
+        if answer == 0:
+            print("Wrong forwarder address or forwarder has fallen")
+            print("Try again later")
+        else:
+            sock.sendto(answer, addr)
         continue
 
     if check_cache(qdomain, qtype == 1) and check_limit(qdomain, qtype == 1):
@@ -178,9 +185,14 @@ while True:
 
     else:
         answer = ask_forwarder(query, forwarder)
-        sock.sendto(answer, addr)
-        print("got by forwarder")
-        update_stats(qdomain, answer, qlength, qtype == 1)
-        cur_time = time.time()
-        print(cur_time)
-        update_limits(answer, cur_time, qtype == 1)
+        if answer == 0:
+            print("Wrong forwarder address or forwarder has fallen")
+            print("Try again later")
+            continue
+        else:
+            sock.sendto(answer, addr)
+            print("got by forwarder")
+            update_stats(qdomain, answer, qlength, qtype == 1)
+            cur_time = time.time()
+            print(cur_time)
+            update_limits(answer, cur_time, qtype == 1)
