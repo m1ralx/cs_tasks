@@ -121,7 +121,7 @@ def update_limits(answers, time, is_ipv4):
     answers = cut_answers(answers, is_ipv4)
     for answer in answers:
         ttl = get_ttl(answer)
-        print(ttl)
+        #print(ttl)
         ip = get_ip(answer, is_ipv4)
         limits[ip] = ttl + time
 
@@ -194,5 +194,5 @@ while True:
             print("got by forwarder")
             update_stats(qdomain, answer, qlength, qtype == 1)
             cur_time = time.time()
-            print(cur_time)
+            #print(cur_time)
             update_limits(answer, cur_time, qtype == 1)
